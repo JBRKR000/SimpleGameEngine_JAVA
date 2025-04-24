@@ -21,6 +21,7 @@ public class Window {
     private final int height;
     private final String windowTitle;
     private Long window;
+    private final int MAX_FPS = 500;
 
     // MOUSE MOVEMENT
     private double lastMouseX, lastMouseY;
@@ -68,7 +69,7 @@ public class Window {
         }
 
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1); // Enable v-sync
+        glfwSwapInterval(0); // Enable v-sync
         glfwShowWindow(window);
         glfwFocusWindow(window);
         GL.createCapabilities();
@@ -87,7 +88,6 @@ public class Window {
             public void invoke(long window, double xpos, double ypos) {
                 mouseX = xpos;
                 mouseY = ypos;
-                System.out.println("Mouse moved: " + mouseX + ", " + mouseY);
             }
         });
 
@@ -95,16 +95,20 @@ public class Window {
 
         triangle = new Triangle(1.5f, 0, 0, .5f, .5f, .5f);
         triangle.init();
+        triangle.loadTexture("src/main/resources/stone_texture.jpg");
+
 
         triangle2 = new Triangle(-1.5f, 0, 0, .5f, .5f, .5f);
         triangle2.init();
+        triangle2.loadTexture("src/main/resources/stone_texture2.jpg");
 
         triangle3 = new Triangle(0, 0, 0, .5f, .5f, .5f);
         triangle3.init();
+        triangle3.loadTexture("src/main/resources/stone_texture3.jpg");
 
         crosshair = new Crosshair();
         crosshair.init();
-
+        glEnable(GL_DEPTH_TEST);
     }
 
     public boolean shouldClose() {
@@ -125,14 +129,14 @@ public class Window {
         lastMouseY = mouseY;
 
         camera.processMouseMovement((float) deltaX, (float) deltaY);
-        System.out.println("Camera position: " + camera.getPosition());
         // Renderowanie obiektów
         triangle.render(camera, projection);
+
         triangle2.render(camera, projection);
         triangle3.render(camera, projection);
 
         crosshair.render();
-
+        printFPS();
         glfwSwapBuffers(window);
     }
 
@@ -144,10 +148,24 @@ public class Window {
 
     public void gameLoop() {
         while (!shouldClose()) {
+            float startTime = (float) glfwGetTime();
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             update();
+
+            float frameTime = (float) glfwGetTime() - startTime;
+            float targetFrameTime = 1.0f / MAX_FPS;
+
+            if (frameTime < targetFrameTime) {
+                try {
+                    Thread.sleep((long) ((targetFrameTime - frameTime) * 1000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
     public void inputHandler(){
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             camera.processKeyboard("FORWARD", deltaTime);
@@ -164,5 +182,9 @@ public class Window {
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
         }
+    }
+    private void printFPS() {
+        float fps = 1.0f / deltaTime;
+        System.out.println("FPS: " + fps);
     }
 }
