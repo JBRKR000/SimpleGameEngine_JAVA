@@ -1,6 +1,10 @@
 package org.engine.shaders;
 
+import org.joml.Matrix4f;
+import org.lwjgl.system.MemoryStack;
+
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -52,4 +56,13 @@ public class ShaderProgram {
     public int getProgramId() {
         return programId;
     }
+    public void setUniform(String name, Matrix4f value) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer fb = stack.mallocFloat(16);
+            value.get(fb);
+            int location = glGetUniformLocation(programId, name);
+            glUniformMatrix4fv(location, false, fb);
+        }
+    }
+
 }

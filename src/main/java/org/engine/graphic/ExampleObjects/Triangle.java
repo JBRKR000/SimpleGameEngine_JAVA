@@ -1,6 +1,8 @@
 package org.engine.graphic.ExampleObjects;
 
+import org.engine.scene.Camera;
 import org.engine.shaders.ShaderProgram;
+import org.joml.Matrix4f;
 
 import java.io.IOException;
 
@@ -64,10 +66,16 @@ public class Triangle {
         glBindVertexArray(0);
     }
 
-    public void render() {
-        glUseProgram(shaderProgram.getProgramId());
+    public void render(Camera camera, Matrix4f projection) {
+        shaderProgram.use();
+        uploadUniforms(camera, projection);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
     }
+    private void uploadUniforms(Camera camera, Matrix4f projection) {
+        shaderProgram.setUniform("view", camera.getViewMatrix());
+        shaderProgram.setUniform("projection", projection);
+    }
+
 }
