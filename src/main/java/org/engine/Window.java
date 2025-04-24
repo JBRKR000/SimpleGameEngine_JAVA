@@ -1,6 +1,5 @@
 package org.engine;
 import org.engine.graphic.ExampleObjects.Triangle;
-import org.engine.graphic.ExampleObjects.Square;
 import org.lwjgl.opengl.GL;
 
 import java.io.IOException;
@@ -16,7 +15,8 @@ public class Window {
 
     // RIANGLE TEST OBJECT
     private Triangle triangle;
-    private Square square;
+    private Triangle triangle2;
+    private Triangle triangle3;
 
 
     public Window(int width, int height, String windowTitle) {
@@ -42,11 +42,16 @@ public class Window {
         GL.createCapabilities();
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 
-        triangle = new Triangle();
+
+        triangle = new Triangle(1.5f,0,0, .5f,.5f,.5f);
         triangle.init();
 
-        square = new Square();
-        square.init();
+        triangle2 = new Triangle(-1.5f,0,0, .5f,.5f,.5f);
+        triangle2.init();
+
+        triangle3 = new Triangle(0,0,0, .5f,.5f,.5f);
+        triangle3.init();
+
 
     }
 
@@ -58,7 +63,9 @@ public class Window {
     public void update() {
         glfwPollEvents();
 
-
+        triangle.render();
+        triangle2.render();
+        triangle3.render();
 
         glfwSwapBuffers(window);
 

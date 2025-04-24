@@ -10,6 +10,18 @@ import static org.lwjgl.opengl.GL30.*;
 public class Triangle {
     private int vao;
     private ShaderProgram shaderProgram;
+    float x,y,z;
+    float scaleX, scaleY, scaleZ;
+
+
+    public Triangle(float x, float y, float z, float scaleX, float scaleY, float scaleZ) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+        this.scaleZ = scaleZ;
+    }
 
     public void init() throws IOException {
         createShaders();
@@ -26,9 +38,9 @@ public class Triangle {
 
     private void createTriangle() {
         float[] vertices = {
-                -0.5f, -0.5f, 0.0f,         1.0f, 0.1f, 0.0f, //KOLORY
-                0.5f, -0.5f, 0.0f,          0.1f, 1.0f, 0.0f,
-                0.0f,  0.5f, 0.0f,          0.0f,  0.1f, 1.0f
+                (-0.5f + x)*scaleX, (-0.5f + y)*scaleY, (0.0f + z)*scaleZ,         1.0f, 0.1f, 0.0f, //KOLORY
+                (0.5f + x)*scaleX, (-0.5f + y)*scaleY, (0.0f + z)*scaleZ,                0.1f, 1.0f, 0.0f,
+                (0.f + x)*scaleX, (0.5f + y)*scaleY, (0.0f + z)*scaleZ,                0.0f,  0.1f, 1.0f
         };
 
         vao = glGenVertexArrays();
