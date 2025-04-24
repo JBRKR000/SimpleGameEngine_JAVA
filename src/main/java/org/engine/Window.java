@@ -2,6 +2,7 @@ package org.engine;
 
 import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
+import org.engine.scene.Crosshair;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
@@ -38,6 +39,8 @@ public class Window {
     private float lastFrame;
     private Matrix4f projection;
 
+    //CROSSHAIR
+    private Crosshair crosshair;
 
 
     public Window(int width, int height, String windowTitle) {
@@ -99,6 +102,10 @@ public class Window {
 
         triangle3 = new Triangle(0, 0, 0, .5f, .5f, .5f);
         triangle3.init();
+
+        crosshair = new Crosshair();
+        crosshair.init();
+
     }
 
     public boolean shouldClose() {
@@ -125,27 +132,11 @@ public class Window {
         triangle2.render(camera, projection);
         triangle3.render(camera, projection);
 
-
-        // Rysowanie celownika
-        drawCrosshair();
+        crosshair.render();
 
         glfwSwapBuffers(window);
     }
 
-    private void drawCrosshair() {
-        glColor3f(1.0f, 1.0f, 1.0f); // White color
-        glBegin(GL_LINES);
-
-        // Horizontal line
-        glVertex2f(-0.02f, 0.0f);
-        glVertex2f(0.02f, 0.0f);
-
-        // Vertical line
-        glVertex2f(0.0f, -0.02f);
-        glVertex2f(0.0f, 0.02f);
-
-        glEnd();
-    }
 
     public void cleanup() {
         glfwDestroyWindow(window);
