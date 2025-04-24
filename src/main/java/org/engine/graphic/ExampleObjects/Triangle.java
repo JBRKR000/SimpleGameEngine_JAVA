@@ -32,8 +32,8 @@ public class Triangle {
 
     private void createShaders() throws IOException {
         shaderProgram = new ShaderProgram(
-                "src/main/java/org/engine/shaders/vertex_shader.glsl",
-                "src/main/java/org/engine/shaders/fragment_shader.glsl"
+                "src/main/java/org/engine/shaders/triangle/vertex_shader.glsl",
+                "src/main/java/org/engine/shaders/triangle/fragment_shader.glsl"
         );
         shaderProgram.use();
     }
