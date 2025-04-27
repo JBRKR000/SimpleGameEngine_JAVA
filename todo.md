@@ -1,5 +1,5 @@
 ---------- M A P   G E N E R A T I O N --------
-
+- reverse texture cuz it's reversed somehow :D
 - create Cube generation (1m x 1m)
 - create Surface generation (1m x 1m)
 - test if everything works with textures 
