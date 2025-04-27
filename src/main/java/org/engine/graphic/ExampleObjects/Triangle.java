@@ -45,9 +45,9 @@ public class Triangle {
     private void createTriangle() {
         float[] vertices = {
                 // Współrzędne wierzchołków   // Kolory       // Współrzędne tekstury
-                (-0.5f + x) * scaleX, (-0.5f + y) * scaleY, (0.0f + z) * scaleZ,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-                (0.5f + x) * scaleX, (-0.5f + y) * scaleY, (0.0f + z) * scaleZ,   0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-                (0.0f + x) * scaleX, (0.5f + y) * scaleY, (0.0f + z) * scaleZ,    0.0f, 0.0f, 1.0f,  0.5f, 1.0f
+                (0.0f + x) * scaleX, (0.5f + y) * scaleY, (0.0f + z) * scaleZ,     1.0f, 0.0f, 0.0f,  0.25f, .25f,
+                (-0.5f + x) * scaleX, (-0.5f + y) * scaleY, (0.0f + z) * scaleZ,   0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+                (0.5f + x) * scaleX, (-0.5f + y) * scaleY, (0.0f + z) * scaleZ,    0.0f, 0.0f, 1.0f,  0.5f, 1.0f
         };
 
         vao = glGenVertexArrays();
