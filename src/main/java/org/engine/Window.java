@@ -1,5 +1,6 @@
 package org.engine;
 
+import org.engine.graphic.ExampleObjects.Cube;
 import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
 import org.engine.scene.Crosshair;
@@ -25,13 +26,13 @@ public class Window {
 
     // MOUSE MOVEMENT
     private double lastMouseX, lastMouseY;
-    private boolean firstMouseMove = true;
     private double mouseX, mouseY;
 
     // TRIANGLE TEST OBJECT
     private Triangle triangle;
     private Triangle triangle2;
     private Triangle triangle3;
+    private Cube cube;
 
     // CAMERA
     private Camera camera;
@@ -106,6 +107,10 @@ public class Window {
         triangle3.init();
         triangle3.loadTexture("src/main/resources/stone_texture3.jpg");
 
+        cube = new Cube(0,0,-5, 0.5f, 0.5f, 0.5f);
+        cube.init();
+        cube.loadTexture("src/main/resources/cube_1m.png");
+
         crosshair = new Crosshair();
         crosshair.init();
         glEnable(GL_DEPTH_TEST);
@@ -130,10 +135,12 @@ public class Window {
 
         camera.processMouseMovement((float) deltaX, (float) deltaY);
         // Renderowanie obiektów
-        triangle.render(camera, projection);
 
+        
+        triangle.render(camera, projection);
         triangle2.render(camera, projection);
         triangle3.render(camera, projection);
+        cube.render(camera, projection);
 
         crosshair.render();
         printFPS();
@@ -142,6 +149,7 @@ public class Window {
 
 
     public void cleanup() {
+        cube.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
