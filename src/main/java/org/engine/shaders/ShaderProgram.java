@@ -8,6 +8,7 @@ import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL20.*;
 
 public class ShaderProgram {
@@ -64,5 +65,12 @@ public class ShaderProgram {
             glUniformMatrix4fv(location, false, fb);
         }
     }
+    public void setUniform(String name, int value) {
+    int location = glGetUniformLocation(programId, name);
+    if (location != -1) {
+        glUniform1i(location, value);
+    }
+}
+
 
 }

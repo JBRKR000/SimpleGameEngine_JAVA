@@ -1,20 +1,22 @@
 package org.engine;
 
 import org.engine.graphic.ExampleObjects.Cube;
+import org.engine.graphic.ExampleObjects.Floor;
+import org.engine.graphic.ExampleObjects.FloorMesh;
 import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
 import org.engine.scene.Crosshair;
+import org.engine.utils.MapLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.opengl.GL;
-
 import java.io.IOException;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL13.*;
 
 
 public class Window {
@@ -33,6 +35,9 @@ public class Window {
     private Triangle triangle2;
     private Triangle triangle3;
     private Cube cube;
+    private Floor floor;
+    private List<MapLoader.MapObject> mapObjects;
+    FloorMesh floorMesh;
 
     // CAMERA
     private Camera camera;
@@ -52,38 +57,45 @@ public class Window {
         this.mouseY = height / 2.0;
     }
 
-    public void init() throws IOException {
+    
 
+    public boolean shouldClose() {
+        return glfwWindowShouldClose(window);
+    }
+
+    public void init() throws IOException {
         camera = new Camera(new Vector3f(0.0f, 0.0f, 3.0f));
         lastFrame = 0.0f;
-
+    
         if (!glfwInit()) {
             throw new RuntimeException("Failed to initialize GLFW");
         }
+        glfwWindowHint(GLFW_SAMPLES, 4);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
+    
         try {
             window = glfwCreateWindow(width, height, windowTitle, 0, 0);
         } catch (RuntimeException e) {
             throw new RuntimeException("Failed to create the GLFW window", e);
         }
-
+    
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(0); // Enable v-sync
+        glfwSwapInterval(1); // Enable v-sync
         glfwShowWindow(window);
         glfwFocusWindow(window);
         GL.createCapabilities();
         projection = new Matrix4f().perspective(
                 (float) Math.toRadians(45.0f),
                 (float) width / height,
-                0.1f,
+                1.0f,
                 100.0f
         );
-
-//        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-
+    
         glfwSetCursorPosCallback(window, new GLFWCursorPosCallback() {
             @Override
             public void invoke(long window, double xpos, double ypos) {
@@ -91,65 +103,67 @@ public class Window {
                 mouseY = ypos;
             }
         });
-
+    
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        triangle = new Triangle(1.5f, 0, 0, .5f, .5f, .5f);
-        triangle.init();
-        triangle.loadTexture("src/main/resources/stone_texture.jpg");
-
-
-        triangle2 = new Triangle(-1.5f, 0, 0, .5f, .5f, .5f);
-        triangle2.init();
-        triangle2.loadTexture("src/main/resources/stone_texture2.jpg");
-
-        triangle3 = new Triangle(0, 0, 0, .5f, .5f, .5f);
-        triangle3.init();
-        triangle3.loadTexture("src/main/resources/stone_texture3.jpg");
-
-        cube = new Cube(0,0,-5, 0.5f, 0.5f, 0.5f);
-        cube.init();
-        cube.loadTexture("src/main/resources/cube_1m.png");
-
-        crosshair = new Crosshair();
-        crosshair.init();
-        glEnable(GL_DEPTH_TEST);
+    
+        initObjects(); // Extracted initialization logic
     }
-
-    public boolean shouldClose() {
-        return glfwWindowShouldClose(window);
-    }
-
-
     public void update() {
         glfwPollEvents();
         float currentFrame = (float) glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         inputHandler();
-        // Obsługa myszy
+    
+        // Mouse handling
         double deltaX = mouseX - lastMouseX;
-        double deltaY = lastMouseY - mouseY; // Odwrócenie osi Y
+        double deltaY = lastMouseY - mouseY; // Invert Y-axis
         lastMouseX = mouseX;
         lastMouseY = mouseY;
-
+    
         camera.processMouseMovement((float) deltaX, (float) deltaY);
-        // Renderowanie obiektów
-
-        
-        triangle.render(camera, projection);
-        triangle2.render(camera, projection);
-        triangle3.render(camera, projection);
-        cube.render(camera, projection);
-
-        crosshair.render();
+    
+        render(); // Extracted rendering logic
         printFPS();
         glfwSwapBuffers(window);
     }
 
 
+
+
+    private void initObjects() throws IOException {
+        MapLoader mapLoader = new MapLoader();
+        MapLoader.MapData mapData = mapLoader.loadMap("src/main/resources/map.txt");
+    
+        floorMesh = new FloorMesh(20, 15, 0f, -15f);
+        floorMesh.init();
+
+        mapObjects = mapData.objects;
+        crosshair = new Crosshair();
+        crosshair.init();
+    }
+
+    private void render() {
+        floorMesh.render(camera, projection);
+        for (MapLoader.MapObject mapObject : mapObjects) {
+            if (mapObject.getObject() instanceof Cube) {
+                ((Cube) mapObject.getObject()).render(camera, projection);
+            }
+        }
+        crosshair.render();
+    }
+    
+
+
     public void cleanup() {
+        floorMesh.cleanup();
+        for (MapLoader.MapObject mapObject : mapObjects) {
+            if (mapObject.getObject() instanceof Cube) {
+                ((Cube) mapObject.getObject()).cleanup();
+            }
+        }
         cube.cleanup();
+        floor.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
@@ -191,6 +205,9 @@ public class Window {
             glfwSetWindowShouldClose(window, true);
         }
     }
+
+
+
     private void printFPS() {
         float fps = 1.0f / deltaTime;
         System.out.println("FPS: " + fps);
