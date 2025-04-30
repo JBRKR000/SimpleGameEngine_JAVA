@@ -43,7 +43,8 @@ public class MapLoader {
         List<MapObject> objects = new ArrayList<>();
         int width = 0;
         int height = 0;
-
+        int cubeTextureID = TextureLoader.loadTexture("src/main/resources/cube_1m.png");
+    
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             int y = 0;
@@ -55,7 +56,7 @@ public class MapLoader {
                     if (c == 'X') {
                         Cube cube = new Cube(x + 0.5f, 0.5f, -y - 0.5f, 1.0f, 1.0f, 1.0f);
                         cube.init();
-                        cube.loadTexture("src/main/resources/cube_1m.png");
+                        cube.loadTexture(cubeTextureID);
                         objects.add(new MapObject(cube));
                     }
                 }
@@ -65,7 +66,7 @@ public class MapLoader {
         }
         floorMesh = new FloorMesh(20, 15, 0f, -15f);
         floorMesh.init();
-
+    
         return new MapData(objects, width, height);
     }
     public void render(Camera camera, Matrix4f projection, List<MapObject> mapObjects) {

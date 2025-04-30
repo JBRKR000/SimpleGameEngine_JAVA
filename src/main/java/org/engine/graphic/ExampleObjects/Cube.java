@@ -151,4 +151,7 @@ public class Cube {
         glDeleteVertexArrays(vao);
         shaderProgram.cleanup();
     }
+    public void loadTexture(int textureID) {
+        this.textureID = textureID;
+    }
 }
