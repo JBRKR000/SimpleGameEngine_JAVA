@@ -1,6 +1,9 @@
 package org.engine.utils;
 
 import org.engine.graphic.ExampleObjects.Cube;
+import org.engine.graphic.ExampleObjects.FloorMesh;
+import org.engine.scene.Camera;
+import org.joml.Matrix4f;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -9,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapLoader {
+
+    private FloorMesh floorMesh;
 
     public static class MapObject {
         private final Object object;
@@ -58,7 +63,25 @@ public class MapLoader {
             }
             height = y;
         }
+        floorMesh = new FloorMesh(20, 15, 0f, -15f);
+        floorMesh.init();
 
         return new MapData(objects, width, height);
+    }
+    public void render(Camera camera, Matrix4f projection, List<MapObject> mapObjects) {
+        floorMesh.render(camera, projection);
+        for (MapObject mapObject : mapObjects) {
+            if (mapObject.getObject() instanceof Cube) {
+                ((Cube) mapObject.getObject()).render(camera, projection);
+            }
+        }
+    }
+    public void cleanup(List<MapObject> mapObjects) {
+        floorMesh.cleanup();
+        for (MapObject mapObject : mapObjects) {
+            if (mapObject.getObject() instanceof Cube) {
+                ((Cube) mapObject.getObject()).cleanup();
+            }
+        }
     }
 }

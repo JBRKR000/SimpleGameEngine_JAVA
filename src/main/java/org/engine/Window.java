@@ -2,7 +2,6 @@ package org.engine;
 
 import org.engine.graphic.ExampleObjects.Cube;
 import org.engine.graphic.ExampleObjects.Floor;
-import org.engine.graphic.ExampleObjects.FloorMesh;
 import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
 import org.engine.scene.Crosshair;
@@ -37,7 +36,8 @@ public class Window {
     private Cube cube;
     private Floor floor;
     private List<MapLoader.MapObject> mapObjects;
-    FloorMesh floorMesh;
+    private MapLoader mapLoader;
+    private MapLoader.MapData mapData;
 
     // CAMERA
     private Camera camera;
@@ -130,24 +130,14 @@ public class Window {
 
 
     private void initObjects() throws IOException {
-        MapLoader mapLoader = new MapLoader();
-        MapLoader.MapData mapData = mapLoader.loadMap("src/main/resources/map.txt");
-    
-        floorMesh = new FloorMesh(20, 15, 0f, -15f);
-        floorMesh.init();
-
-        mapObjects = mapData.objects;
+        mapLoader = new MapLoader();
+        mapData = mapLoader.loadMap("src/main/resources/map.txt");
         crosshair = new Crosshair();
         crosshair.init();
     }
 
     private void render() {
-        floorMesh.render(camera, projection);
-        for (MapLoader.MapObject mapObject : mapObjects) {
-            if (mapObject.getObject() instanceof Cube) {
-                ((Cube) mapObject.getObject()).render(camera, projection);
-            }
-        }
+        mapLoader.render(camera, projection, mapData.objects);
         glDisable(GL_DEPTH_TEST);
         crosshair.render();
         glEnable(GL_DEPTH_TEST);
@@ -156,12 +146,8 @@ public class Window {
 
 
     public void cleanup() {
-        floorMesh.cleanup();
-        for (MapLoader.MapObject mapObject : mapObjects) {
-            if (mapObject.getObject() instanceof Cube) {
-                ((Cube) mapObject.getObject()).cleanup();
-            }
-        }
+        mapLoader.cleanup(mapData.objects);
+        crosshair.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
