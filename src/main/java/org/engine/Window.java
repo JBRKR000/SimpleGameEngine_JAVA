@@ -129,8 +129,6 @@ public class Window {
     }
 
 
-
-
     private void initObjects() throws IOException {
         MapLoader mapLoader = new MapLoader();
         MapLoader.MapData mapData = mapLoader.loadMap("src/main/resources/map.txt");
@@ -150,7 +148,9 @@ public class Window {
                 ((Cube) mapObject.getObject()).render(camera, projection);
             }
         }
+        glDisable(GL_DEPTH_TEST);
         crosshair.render();
+        glEnable(GL_DEPTH_TEST);
     }
     
 
@@ -162,8 +162,6 @@ public class Window {
                 ((Cube) mapObject.getObject()).cleanup();
             }
         }
-        cube.cleanup();
-        floor.cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
@@ -205,7 +203,6 @@ public class Window {
             glfwSetWindowShouldClose(window, true);
         }
     }
-
 
 
     private void printFPS() {
