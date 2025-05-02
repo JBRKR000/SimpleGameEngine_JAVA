@@ -256,7 +256,7 @@ public class Window {
         long monitor = glfwGetPrimaryMonitor();
         GLFWVidMode videoMode = glfwGetVideoMode(monitor);
 
-        glfwGetWindowPos(window, new int[1], new int[1]); // Zapamiętaj pozycję okna
+        glfwGetWindowPos(window, new int[1], new int[1]);
         glfwSetWindowMonitor(window, monitor, 0, 0, videoMode.width(), videoMode.height(), GLFW_DONT_CARE);
         isFullscreen = true;
     } else {
