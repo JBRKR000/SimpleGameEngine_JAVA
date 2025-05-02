@@ -2,10 +2,12 @@ package org.engine;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
+import static org.lwjgl.glfw.GLFW.GLFW_DONT_CARE;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_F12;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -16,12 +18,16 @@ import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwFocusWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetKey;
+import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowMonitor;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -53,6 +59,7 @@ import org.engine.utils.MapLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import imgui.ImGui;
 
@@ -64,6 +71,9 @@ public class Window {
     private final String windowTitle;
     private Long window;
     private final int MAX_FPS = 500;
+    private boolean isFullscreen = false;
+    private int windowedWidth, windowedHeight;
+    private int windowedPosX, windowedPosY;
 
     // MOUSE MOVEMENT
     private double lastMouseX, lastMouseY;
@@ -233,5 +243,25 @@ public class Window {
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
         }
+        if(glfwGetKey(window, GLFW_KEY_F12) == GLFW_PRESS) {
+            toggleFullscreen();
+        }
     }
+
+    public void toggleFullscreen() {
+    
+    if (!isFullscreen) {
+        windowedWidth = width;
+        windowedHeight = height;
+        long monitor = glfwGetPrimaryMonitor();
+        GLFWVidMode videoMode = glfwGetVideoMode(monitor);
+
+        glfwGetWindowPos(window, new int[1], new int[1]); // Zapamiętaj pozycję okna
+        glfwSetWindowMonitor(window, monitor, 0, 0, videoMode.width(), videoMode.height(), GLFW_DONT_CARE);
+        isFullscreen = true;
+    } else {
+        glfwSetWindowMonitor(window, 0, windowedPosX, windowedPosY, windowedWidth, windowedHeight, GLFW_DONT_CARE);
+        isFullscreen = false;
+    }
+}
 }
