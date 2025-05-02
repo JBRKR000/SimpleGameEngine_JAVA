@@ -1,21 +1,61 @@
 package org.engine;
 
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
+import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
+import static org.lwjgl.glfw.GLFW.GLFW_SAMPLES;
+import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
+import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
+import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
+import static org.lwjgl.glfw.GLFW.glfwFocusWindow;
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.glfwShowWindow;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
+import static org.lwjgl.glfw.GLFW.glfwWindowHint;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_LESS;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glDepthFunc;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
+
+import java.io.IOException;
+import java.util.List;
+
 import org.engine.graphic.ExampleObjects.Cube;
 import org.engine.graphic.ExampleObjects.Floor;
 import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
 import org.engine.scene.Crosshair;
+import org.engine.utils.ImGuiHandler;
 import org.engine.utils.MapLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.opengl.GL;
-import java.io.IOException;
-import java.util.List;
+import imgui.ImGui;
 
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
 
 
 public class Window {
@@ -107,6 +147,7 @@ public class Window {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
         initObjects(); // Extracted initialization logic
+        ImGuiHandler.initImGui(window); // Extracted ImGui initialization logic
     }
     public void update() {
         glfwPollEvents();
@@ -124,7 +165,6 @@ public class Window {
         camera.processMouseMovement((float) deltaX, (float) deltaY);
     
         render(); // Extracted rendering logic
-        printFPS();
         glfwSwapBuffers(window);
     }
 
@@ -141,6 +181,7 @@ public class Window {
         glDisable(GL_DEPTH_TEST);
         crosshair.render();
         glEnable(GL_DEPTH_TEST);
+        ImGuiHandler.renderImGui(camera, window); // Extracted ImGui rendering logic
     }
     
 
@@ -148,6 +189,8 @@ public class Window {
     public void cleanup() {
         mapLoader.cleanup(mapData.objects);
         crosshair.cleanup();
+        ImGuiHandler.cleanup(); // Extracted ImGui cleanup logic
+        ImGui.destroyContext();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
@@ -188,11 +231,5 @@ public class Window {
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
         }
-    }
-
-
-    private void printFPS() {
-        float fps = 1.0f / deltaTime;
-        System.out.println("FPS: " + fps);
     }
 }

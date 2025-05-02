@@ -69,8 +69,30 @@
             <version>3.3.6</version>
             <classifier>natives-windows</classifier>
         </dependency>
+        <dependency>
+            <groupId>imgui</groupId>
+            <artifactId>imgui-binding</artifactId>
+            <version>1.81.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/imgui-binding-1.81.0.jar</systemPath>
+        </dependency>
+
+        <!-- ImGui LWJGL3 -->
+        <dependency>
+            <groupId>imgui</groupId>
+            <artifactId>imgui-lwjgl3</artifactId>
+            <version>1.81.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/imgui-lwjgl3-1.81.0.jar</systemPath>
+        </dependency>
+
+        <!-- ImGui App -->
+        <dependency>
+            <groupId>imgui</groupId>
+            <artifactId>imgui-app</artifactId>
+            <version>1.81.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/imgui-app-1.81.0.jar</systemPath>
+        </dependency>
     </dependencies>
-
-
-
 </project>
