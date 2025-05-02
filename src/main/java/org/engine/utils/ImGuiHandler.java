@@ -141,7 +141,6 @@ public class ImGuiHandler {
     }
 
     private static void handleCommand(String command) {
-        // Przykładowa obsługa polecenia
         if (command.equalsIgnoreCase("clear")) {
             consoleLogs.clear();
             addConsoleLog("[Console] Cleared.");
@@ -153,5 +152,9 @@ public class ImGuiHandler {
     public static void cleanup() {
         imguiGl3.dispose();
         imguiGlfw.dispose();
+    }
+
+    public static boolean isConsoleEnabled() {
+        return consoleEnabled;
     }
 }

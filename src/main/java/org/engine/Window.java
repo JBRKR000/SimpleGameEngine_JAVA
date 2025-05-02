@@ -154,15 +154,17 @@ public class Window {
         float currentFrame = (float) glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        inputHandler();
-    
-        // Mouse handling
-        double deltaX = mouseX - lastMouseX;
-        double deltaY = lastMouseY - mouseY; // Invert Y-axis
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-    
-        camera.processMouseMovement((float) deltaX, (float) deltaY);
+        
+        if(!ImGuiHandler.isConsoleEnabled()){
+            inputHandler();
+            // Mouse handling
+            double deltaX = mouseX - lastMouseX;
+            double deltaY = lastMouseY - mouseY; // Invert Y-axis
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            camera.processMouseMovement((float) deltaX, (float) deltaY);
+        }
+        
     
         render(); // Extracted rendering logic
         glfwSwapBuffers(window);
