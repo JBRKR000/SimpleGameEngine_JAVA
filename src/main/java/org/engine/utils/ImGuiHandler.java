@@ -5,10 +5,13 @@ import org.engine.scene.Camera;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiInputTextFlags;
+import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import imgui.type.ImBoolean;
 import imgui.type.ImString;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
@@ -30,6 +33,7 @@ public class ImGuiHandler {
     private static final List<String> consoleLogs = new ArrayList<>();
     private static final int MAX_CONSOLE_LOGS = 100;
     private static ImString commandInput = new ImString(256);
+    private static final ImBoolean isConsoleOpen = new ImBoolean(true);
 
     public ImGuiHandler() {
         imguiGlfw = new ImGuiImplGlfw();
@@ -50,7 +54,7 @@ public class ImGuiHandler {
         addConsoleLog("[Console] Initialized.");
     }
 
-    public static void renderImGui(Camera camera, long window) {
+    public static void renderImGui(Camera camera, long window, ThreadMenager threadMenager) {
         imguiGlfw.newFrame();
         ImGui.newFrame();
 
@@ -58,7 +62,7 @@ public class ImGuiHandler {
         deltaTime = (float) (currentFrameTime - lastFrameTime) / 1_000_000_000.0f;
         lastFrameTime = currentFrameTime;
 
-        renderDebugWindow(camera);
+        renderDebugWindow(camera, threadMenager);
 
         if (ImGui.isKeyPressed(290)) { // F1 to toggle console
             consoleEnabled = !consoleEnabled;
@@ -75,7 +79,7 @@ public class ImGuiHandler {
         imguiGl3.renderDrawData(ImGui.getDrawData());
     }
 
-    private static void renderDebugWindow(Camera camera) {
+    private static void renderDebugWindow(Camera camera, ThreadMenager threadMenager) {
         Runtime runtime = Runtime.getRuntime();
 
         ImGui.begin("NpEx Engine Debug Window");
@@ -86,36 +90,38 @@ public class ImGuiHandler {
         ImGui.text("FPS: " + (1.0f / deltaTime));
         ImGui.text("Delta Time: " + deltaTime);
         ImGui.text("Mouse Position: (" + ImGui.getMousePosX() + ", " + ImGui.getMousePosY() + ")");
-        ImGui.text("Camera Position: (" + camera.getPosition().x + ", " + camera.getPosition().y + ", " + camera.getPosition().z + ")");
+    
         ImGui.end();
     }
 
     private static void renderConsoleWindow() {
-        final int windowFlags = ImGuiWindowFlags.NoDecoration |
-                                ImGuiWindowFlags.AlwaysAutoResize |
-                                ImGuiWindowFlags.NoMove |
-                                ImGuiWindowFlags.NoSavedSettings |
-                                ImGuiWindowFlags.NoFocusOnAppearing;
-
-        ImGui.setNextWindowPos(0, 0);
-        ImGui.setNextWindowSize(ImGui.getIO().getDisplaySizeX(), ImGui.getIO().getDisplaySizeY() * 0.5f);
-
-        ImGui.pushStyleColor(ImGuiCol.WindowBg, 0.1f, 0.1f, 0.1f, 0.9f); // Ciemne tło
-        ImGui.begin("Console", windowFlags);
-
+    final int windowFlags = ImGuiWindowFlags.MenuBar | 
+                            ImGuiWindowFlags.NoCollapse;
+    if (!ImGui.isWindowAppearing()) {
+        ImGui.setNextWindowPos(50, 50, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowSize(800, 400, ImGuiCond.FirstUseEver);
+    }
+    ImGui.pushStyleColor(ImGuiCol.WindowBg, 0.05f, 0.05f, 0.05f, 1.0f);
+    ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 10.0f, 10.0f);
+    if (ImGui.begin("Console", isConsoleOpen, windowFlags)) {
+        ImGui.beginChild("ConsoleScrollArea", 0, -30, true, ImGuiWindowFlags.HorizontalScrollbar);
         for (String line : consoleLogs) {
-            if (line.contains("[Error]")) {
-                ImGui.textColored(1, 0.2f, 0.2f, 1, line);
-            } else if (line.contains("[Info]")) {
-                ImGui.textColored(0.2f, 1, 0.2f, 1, line);
-            } else if (line.contains("[Warning]")) {
-                ImGui.textColored(1, 1, 0.2f, 1, line);
+            if (line.contains("[SEVERE]")) {
+                ImGui.textColored(1, 0.2f, 0.2f, 1, line); // Czerwony dla SEVERE
+            } else if (line.contains("[INFO]")) {
+                ImGui.textColored(0.2f, 1, 0.2f, 1, line); // Zielony dla INFO
+            } else if (line.contains("[WARNING]")) {
+                ImGui.textColored(1, 1, 0.2f, 1, line); // Żółty dla WARNING
             } else {
-                ImGui.text(line);
+                ImGui.text(line); // Domyślny kolor
             }
         }
+        if (ImGui.getScrollY() >= ImGui.getScrollMaxY()) {
+            ImGui.setScrollHereY(1.0f);
+        }
+        ImGui.endChild();
 
-        // Input field for commands
+        // Pole tekstowe do wprowadzania komend
         ImGui.separator();
         ImGui.text(">");
         ImGui.sameLine();
@@ -124,14 +130,15 @@ public class ImGuiHandler {
             String command = commandInput.get();
             addConsoleLog("[Command] " + command);
             handleCommand(command);
-            commandInput.set(""); // clear
+            commandInput.set("");
         }
-        
-
         ImGui.popItemWidth();
-        ImGui.end();
-        ImGui.popStyleColor();
     }
+    ImGui.end();
+
+    ImGui.popStyleVar();
+    ImGui.popStyleColor();
+}
 
     private static void addConsoleLog(String log) {
         if (consoleLogs.size() >= MAX_CONSOLE_LOGS) {
@@ -156,5 +163,9 @@ public class ImGuiHandler {
 
     public static boolean isConsoleEnabled() {
         return consoleEnabled;
+    }
+
+    public static void logToConsole(String log) {
+        addConsoleLog(log);
     }
 }

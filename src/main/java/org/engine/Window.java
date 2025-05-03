@@ -48,6 +48,7 @@ import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.engine.graphic.ExampleObjects.Cube;
 import org.engine.graphic.ExampleObjects.Floor;
@@ -55,7 +56,9 @@ import org.engine.graphic.ExampleObjects.Triangle;
 import org.engine.scene.Camera;
 import org.engine.scene.Crosshair;
 import org.engine.utils.ImGuiHandler;
+import org.engine.utils.ImGuiLogHandler;
 import org.engine.utils.MapLoader;
+import org.engine.utils.ThreadMenager;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
@@ -74,6 +77,7 @@ public class Window {
     private boolean isFullscreen = false;
     private int windowedWidth, windowedHeight;
     private int windowedPosX, windowedPosY;
+    private Logger logger = Logger.getLogger(Window.class.getName());
 
     // MOUSE MOVEMENT
     private double lastMouseX, lastMouseY;
@@ -98,6 +102,8 @@ public class Window {
     //CROSSHAIR
     private Crosshair crosshair;
 
+    // THREAD MANAGER
+    ThreadMenager threadManager = new ThreadMenager();
 
     public Window(int width, int height, String windowTitle) {
         this.width = width;
@@ -107,8 +113,6 @@ public class Window {
         this.mouseY = height / 2.0;
     }
 
-    
-
     public boolean shouldClose() {
         return glfwWindowShouldClose(window);
     }
@@ -116,7 +120,8 @@ public class Window {
     public void init() throws IOException {
         camera = new Camera(new Vector3f(0.0f, 0.0f, 3.0f));
         lastFrame = 0.0f;
-    
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.addHandler(new ImGuiLogHandler());
         if (!glfwInit()) {
             throw new RuntimeException("Failed to initialize GLFW");
         }
@@ -156,7 +161,7 @@ public class Window {
     
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
-        initObjects(); // Extracted initialization logic
+        initObjects(threadManager); // Extracted initialization logic
         ImGuiHandler.initImGui(window); // Extracted ImGui initialization logic
     }
     public void update() {
@@ -175,25 +180,46 @@ public class Window {
             camera.processMouseMovement((float) deltaX, (float) deltaY);
         }
         
-    
-        render(); // Extracted rendering logic
+        threadManager.updateMainThreadQueue();
+        render();
         glfwSwapBuffers(window);
     }
 
-
-    private void initObjects() throws IOException {
-        mapLoader = new MapLoader();
-        mapData = mapLoader.loadMap("src/main/resources/map.txt");
+    private void initObjects(ThreadMenager threadManager) throws IOException {
+        threadManager.submitToWorker(() -> {
+            try {
+                MapLoader loader = new MapLoader();
+                MapLoader.MapData data = loader.loadMap("src/main/resources/map.txt");
+                threadManager.submitToMain(() -> {
+                    try {
+                        float startTime = (float) glfwGetTime();
+                        this.mapLoader = loader;
+                        this.mapData = data;
+                        this.mapLoader.initGLResources(mapData.objects);
+                        logger.warning("Map loaded with " + mapData.objects.size() + " objects.");
+                        logger.info("Map loading took " + (int)(glfwGetTime() - startTime) + " seconds.");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+    
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
         crosshair = new Crosshair();
         crosshair.init();
     }
+    
+    
+    
 
     private void render() {
         mapLoader.render(camera, projection, mapData.objects);
         glDisable(GL_DEPTH_TEST);
         crosshair.render();
         glEnable(GL_DEPTH_TEST);
-        ImGuiHandler.renderImGui(camera, window); // Extracted ImGui rendering logic
+        ImGuiHandler.renderImGui(camera, window, threadManager); // Extracted ImGui rendering logic
     }
     
 
@@ -201,6 +227,7 @@ public class Window {
     public void cleanup() {
         mapLoader.cleanup(mapData.objects);
         crosshair.cleanup();
+        threadManager.shutdown(); // Shutdown thread manager
         ImGuiHandler.cleanup(); // Extracted ImGui cleanup logic
         ImGui.destroyContext();
         glfwDestroyWindow(window);
@@ -249,7 +276,6 @@ public class Window {
     }
 
     public void toggleFullscreen() {
-    
     if (!isFullscreen) {
         windowedWidth = width;
         windowedHeight = height;
@@ -263,5 +289,7 @@ public class Window {
         glfwSetWindowMonitor(window, 0, windowedPosX, windowedPosY, windowedWidth, windowedHeight, GLFW_DONT_CARE);
         isFullscreen = false;
     }
-}
+    }
+    
+
 }
